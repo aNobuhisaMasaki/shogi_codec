@@ -3,6 +3,7 @@ const util = require('util')
 
 const mkdir = util.promisify(fs.mkdir)
 const writeFile = util.promisify(fs.writeFile)
+const readFile = util.promisify(fs.readFile)
 
 const factMemo = {}
 const fact = n => factMemo[n] || n <= 1 && (factMemo[n] = 1) || (factMemo[n] = fact(n - 1) * n)
@@ -201,7 +202,7 @@ const generateAllKomaBoardPatterns = async boardPatterns =>
     return { value, children }
   }, { value: '0', children: {} })
 
-const main = async () => {
+const seed = async () => {
   await mkdir('./output', { recursive: true })
   await mkdir('./output/allBoardPatterns', { recursive: true })
 
@@ -215,9 +216,12 @@ const main = async () => {
 
   const allBoardPatterns = await generateAllKomaBoardPatterns(oneWayBoardPatterns[8])
   const childrenList = Object.entries(allBoardPatterns.children).sort(([a], [b]) => a < b ? -1 : 1).map(([key, v]) => ({ key, ...v }))
-  await writeFile('./output/allBoardPatterns/summary.json', Buffer.from(JSON.stringify(childrenList, null, 2)))
+  await writeFile('./output/allBoardPatterns/summary.json', Buffer.from(JSON.stringify({
+    ...allBoardPatterns,
+    children: childrenList,
+  }, null, 2)))
   console.log(allBoardPatterns.value)
   // 6056820947506738444045784971572143468392160009444966301221693367028800
 }
 
-module.exports = { main }
+module.exports = seed
