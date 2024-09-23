@@ -13,8 +13,11 @@ const confidenceInterval = (successes, trials) => {
   }
 }
 
-const estimate = async (trials = 100) => {
-  const results = await [...Array(trials)].reduce((a, i) => a.then(async a => [...a, await decode()]), Promise.resolve([]))
+const estimate = async (trials = 1000) => {
+  const results = await [...Array(trials)].reduce((a, i) => a.then(async a => {
+    const result = await decode().then(result => [result]).catch(() => [])
+    return [...a, ...result]
+  }), Promise.resolve([]))
   const successes = results.filter(result => result.data.isValid).length
   const allPatterns = Number(results[0].data.allBoardPatterns.value)
   console.log(allPatterns)
