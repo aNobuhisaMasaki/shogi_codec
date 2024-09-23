@@ -256,10 +256,63 @@ const validateByOute = async state => {
 
 // const lines = ['　', '╵', '╶', '└', '╷', '│', '┌', '├', '╴', '┘', '─', '┴', '┐', '┤', '┬', '┼']
 
-const koma = '　歩香桂銀金角飛玉　　と杏圭全　馬竜'
+const koma = '・歩香桂銀金角飛玉　　と杏圭全　馬龍'
 const arabicNumber = '１２３４５６７８９'
-const kanjiNumber = '一二三四五六七八九'
-const render = (board, tegoma) => [
+
+const prefix10 = n => ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'][n]
+
+const prefix10000 = n => ['', '十', '百', '千'].reduce(({ acc, n }, suffix10) => ({
+  acc: (m => (m > 1 || !suffix10) && `${prefix10(m)}${suffix10}${acc}` || m === 1 && `${suffix10}${acc}` || acc)(n % 10),
+  n: Math.floor(n / 10),
+}), { acc: '', n }).acc
+
+const kanjiNumber = n =>
+  ['', '万', '億', '兆', '京', '垓', '秭', '穣', '溝', '澗', '正', '載', '極', '恒河沙', '阿僧祗', '那由多', '不可思議', '無量大数'].reduce(({ acc, n }, suffix10000) => ({
+    acc: (m => m && `${m}${suffix10000}${acc}` || acc)(prefix10000(Number(n % 10000n))),
+    n: n / 10000n,
+  }), { acc: '', n: BigInt(n) }).acc
+
+// # http://kakinoki.o.oo7.jp/kif_format.html
+// # ---- Kifu for Windows95 V3.53 棋譜ファイル ----
+const render = (board, tegoma, isValid) => [
+  // '開始日時：1999/07/15 19:07:12',
+  // '終了日時：1999/07/15 19:07:17',
+  // '先手：先手の対局者名',
+  // '後手：後手の対局者名',
+  // '手合割：平手',
+  `後手の持駒：${Object.entries(tegoma).sort(([a], [b]) => b - a).flatMap(([k, [v1, v2]]) =>
+    v2 > 1 && `${koma[k]}${kanjiNumber(v2)}`
+    || v2 === 1 && `${koma[k]}`
+    || []
+  ).join('　') || 'なし'}`,
+  '  ９ ８ ７ ６ ５ ４ ３ ２ １',
+  '+---------------------------+',
+  ...Object.keys([...Array(9)]).map(Number).map(i =>
+    [
+      '|',
+      ...Object.keys([...Array(9)]).map(Number).map(j =>
+        (v => (v < 0 ? 'v' : ' ') + koma[Math.abs(v)])(board[j][i])
+      ),
+      '|',
+      kanjiNumber(i + 1),
+    ].join('')
+  ),
+  '+---------------------------+',
+  `先手の持駒：${Object.entries(tegoma).sort(([a], [b]) => b - a).flatMap(([k, [v1, v2]]) =>
+    v1 > 1 && `${koma[k]}${kanjiNumber(v1)}`
+    || v1 === 1 && `${koma[k]}`
+    || []
+  ).join('　') || 'なし'}`,
+  ...isValid
+    ? [
+      '手数----指手---------消費時間--',
+      '1 中断         ( 0:00/00:00:00)',
+      'まで0手で中断',
+    ]
+    : ['無効な棋譜です'],
+].join('\n')
+
+const render0 = (board, tegoma) => [
   Object.entries(tegoma).map(([k, [v1, v2]]) => `${koma[k]}${v1}`).join(''),
   arabicNumber.split('').reverse().map(v => ` ${v}`).join(''),
   ...Object.keys([...Array(9)]).map(Number).map(i => [
@@ -314,7 +367,7 @@ const decode = async () => {
   console.log('-----')
   console.log(`判定結果: ${isValid ? 'O' : 'X'}`)
   console.log('-----')
-  console.log(render(board, tegoma))
+  console.log(render(board, tegoma, isValid))
   console.log('-----')
 
   return state3
