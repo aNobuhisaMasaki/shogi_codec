@@ -3,54 +3,9 @@ const util = require('util')
 
 const mkdir = util.promisify(fs.mkdir)
 const writeFile = util.promisify(fs.writeFile)
-const readFile = util.promisify(fs.readFile)
 
 const factMemo = {}
 const fact = n => factMemo[n] || n <= 1 && (factMemo[n] = 1) || (factMemo[n] = fact(n - 1) * n)
-
-const generateOneWayKomaColumnPatterns1 = () =>
-  Object.keys([...Array((2 + 1) * (4 + 1) * (4 + 1))]).reduce((a, i) => {
-    const totalFuCount = Math.floor(i / 25)
-    const totalKyoCount = Math.floor(i / 5) % 5
-    const totalKeiCount = i % 5
-    const key = `$${pad2(totalFuCount)}${totalKyoCount}${totalKeiCount}`
-    const illegalPatterns = {
-      '0': [0, 1, 2, 3],
-      '1': [0, 3],
-      '7': [0, 3],
-      '8': [0, 1, 2, 3],
-    }
-    return Object.keys([...Array(4 * 2 * 2 * 4)]).reduce((a, j) => {
-      const status0 = Math.floor(j / (2 * 2 * 4))
-      const status1 = Math.floor(j / (2 * 4)) % 2
-      const status7 = Math.floor(j / 4) % 2
-      const status8 = j % 4
-      const illegalPieces = [
-        illegalPatterns[0][status0],
-        illegalPatterns[1][status1],
-        illegalPatterns[7][status7],
-        illegalPatterns[8][status8],
-      ].filter(Boolean)
-      const illegalFuCount = illegalPieces.filter(k => k === 1).length
-      const illegalKyoCount = illegalPieces.filter(k => k === 2).length
-      const illegalKeiCount = illegalPieces.filter(k => k === 3).length
-      const fuCount = totalFuCount - illegalFuCount
-      const kyoCount = totalKyoCount - illegalKyoCount
-      const keiCount = totalKeiCount - illegalKeiCount
-      if (fuCount >= 0 && kyoCount >= 0 && keiCount >= 0 && 9 - illegalPieces.length - fuCount - kyoCount - keiCount >= 0) {
-        return {
-          ...a,
-          [key]: (a[key] || 0)
-            + (-1) ** illegalPieces.length
-              * (!illegalFuCount && fuCount ? 2 : 1)
-              * 2 ** kyoCount
-              * 2 ** keiCount
-              * fact(9 - illegalPieces.length) / fact(fuCount) / fact(kyoCount) / fact(keiCount) / fact(9 - illegalPieces.length - fuCount - kyoCount - keiCount),
-        }
-      }
-      return a
-    }, a)
-  }, {})
 
 const generateOneWayKomaColumnPatterns = () =>
   Object.keys([...Array(4 ** 9)]).reduce((a, i) => {

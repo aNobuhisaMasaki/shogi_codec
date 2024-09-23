@@ -1,9 +1,8 @@
 const decode = require('./decode')
 
 const confidenceInterval = (successes, trials) => {
-  // 二項分布の推定確率
-  const p = successes / trials
-  const z = 1.96; // 95%の信頼区間
+  const p = successes / trials // 二項分布の推定確率
+  const z = 1.96 // 95%の信頼区間
 
   const standardError = Math.sqrt(p * (1 - p) / trials)
 

@@ -3,8 +3,6 @@ const util = require('util')
 
 const readFile = util.promisify(fs.readFile)
 
-const log = s => console.log(JSON.stringify(s, null, 2))
-
 const factMemo = {}
 const fact = n => factMemo[n] || n <= 1 && (factMemo[n] = 1) || (factMemo[n] = fact(n - 1) * n)
 
@@ -83,24 +81,6 @@ const parseOneWayPiecePatterns = async (state, oneWayBoardPatterns, oneWayColumn
     }
   }
 }
-
-/*
-const combinPattern = (id, x, y) => {
-  if (y === 1) {
-    return [Number(id)]
-  }
-  const { head, nextId } = Object.keys([...Array(x - y + 1)]).map(Number).reduce(({ sum, head, nextId }, i) => {
-    if (head != null) return { sum, head, nextId }
-    const diff = combinB(x - i - 1, y - 1)
-    const newSum = sum + diff
-    if (newSum > id) {
-      return { sum: newSum, head: i, nextId: id - (sum || BigInt(0)) }
-    }
-    return { sum: newSum, head, nextId }
-  }, { sum: BigInt(0) })
-  return [head, ...combinPattern(nextId, x - head - 1, y - 1).map(i => i + head + 1)]
-}
-*/
 
 const combinPattern = (id, x, y) =>
   Object.keys([...Array(y)]).map(Number).reduce(({ acc, id, x, y }, i) => {
@@ -254,8 +234,6 @@ const validateByOute = async state => {
   return { ...state, data: { ...data, board, isValid: await validateByOuteImpl(board) } }
 }
 
-// const lines = ['　', '╵', '╶', '└', '╷', '│', '┌', '├', '╴', '┘', '─', '┴', '┐', '┤', '┬', '┼']
-
 const koma = '・歩香桂銀金角飛玉　　と杏圭全　馬龍'
 const arabicNumber = '１２３４５６７８９'
 
@@ -273,13 +251,7 @@ const kanjiNumber = n =>
   }), { acc: '', n: BigInt(n) }).acc
 
 // # http://kakinoki.o.oo7.jp/kif_format.html
-// # ---- Kifu for Windows95 V3.53 棋譜ファイル ----
 const render = (board, tegoma, isValid) => [
-  // '開始日時：1999/07/15 19:07:12',
-  // '終了日時：1999/07/15 19:07:17',
-  // '先手：先手の対局者名',
-  // '後手：後手の対局者名',
-  // '手合割：平手',
   `後手の持駒：${Object.entries(tegoma).sort(([a], [b]) => b - a).flatMap(([k, [v1, v2]]) =>
     v2 > 1 && `${koma[k]}${kanjiNumber(v2)}`
     || v2 === 1 && `${koma[k]}`
@@ -312,16 +284,6 @@ const render = (board, tegoma, isValid) => [
     : ['無効な棋譜です'],
 ].join('\n')
 
-const render0 = (board, tegoma) => [
-  Object.entries(tegoma).map(([k, [v1, v2]]) => `${koma[k]}${v1}`).join(''),
-  arabicNumber.split('').reverse().map(v => ` ${v}`).join(''),
-  ...Object.keys([...Array(9)]).map(Number).map(i => [
-    ...Object.keys([...Array(9)]).map(Number).map(j => (v => (v < 0 ? 'v' : ' ') + koma[Math.abs(v)])(board[j][i])),
-    kanjiNumber[i],
-  ].join('')),
-  Object.entries(tegoma).map(([k, [v1, v2]]) => `${koma[k]}${v2}`).join(''),
-].join('\n')
-
 const decode = async () => {
   const oneWayBoardPatterns = await readFile(`./output/oneWayBoardPatterns.json`).then(JSON.parse)
   const oneWayColumnPatterns = await readFile(`./output/oneWayColumnPatterns.json`).then(JSON.parse)
@@ -341,25 +303,6 @@ const decode = async () => {
 
   let state2 = { ...state1, id: [String(BigInt(state.id[0]) % massRatio), massRatio] }
   state2 = await parseTwoWayPiecePatterns(state2)
-
-  /*
-  const state2 = {
-    data: {
-      board: [
-        [0,0,0,0,7,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,-1,0,0,0,0],
-        [0,0,0,0,-8,0,-1,2,2],
-        [0,0,0,-1,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,3],
-        [0,0,0,0,0,0,0,0,0],
-        [6,0,0,0,0,0,0,0,0],
-      ],
-      tegoma: {}
-    }
-  }
-  */
 
   const state3 = await validateByOute(state2)
   const { isValid, board, tegoma } = state3.data
