@@ -12,7 +12,7 @@ const confidenceInterval = (successes, trials) => {
   }
 }
 
-const estimate = async (trials = 1000) => {
+const estimate = async (trials = process.env.ESTIMATION_TRIALS || 100) => {
   const results = await [...Array(trials)].reduce((a, i) => a.then(async a => {
     const result = await decode().then(result => [result]).catch(() => [])
     return [...a, ...result]
