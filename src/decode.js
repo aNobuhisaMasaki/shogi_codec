@@ -307,11 +307,11 @@ const decode = async () => {
   const state3 = await validateByOute(state2)
   const { isValid, board, tegoma } = state3.data
 
-  console.log('-----')
+  console.log()
   console.log(`判定結果: ${isValid ? 'O' : 'X'}`)
-  console.log('-----')
+  console.log()
   console.log(render(board, tegoma, isValid))
-  console.log('-----')
+  console.log()
 
   return state3
 }
